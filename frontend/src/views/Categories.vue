@@ -6,7 +6,7 @@
       <div class="create-form">
         <input type="text" v-model="newCategory.name" placeholder="分类名称">
         <input type="text" v-model="newCategory.slug" placeholder="分类标识 (slug)">
-        <button @click="createCategory">新建分类</button>
+        <button @click="handleCreateCategory">新建分类</button>
       </div>
 
       <table class="category-table">
@@ -42,7 +42,7 @@
               </template>
               <template v-else>
                 <button class="small-btn" @click="startEdit(cat)">编辑</button>
-                <button class="small-btn danger" @click="deleteCategory(cat)">删除</button>
+                <button class="small-btn danger" @click="handleDeleteCategory(cat)">删除</button>
               </template>
             </td>
           </tr>
@@ -54,7 +54,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getCategories, createCategory, updateCategory, deleteCategory } from '../api'
+import { 
+  getCategories, 
+  createCategory as apiCreateCategory, 
+  updateCategory as apiUpdateCategory, 
+  deleteCategory as apiDeleteCategory 
+} from '../api'
 
 const categories = ref([])
 const newCategory = ref({ name: '', slug: '' })
@@ -66,13 +71,13 @@ const fetchCategories = async () => {
   categories.value = res.data
 }
 
-const createCategory = async () => {
+const handleCreateCategory = async () => {
   if (!newCategory.value.name || !newCategory.value.slug) {
     alert('请填写完整信息')
     return
   }
   try {
-    await createCategory(newCategory.value)
+    await apiCreateCategory(newCategory.value)
     newCategory.value = { name: '', slug: '' }
     fetchCategories()
   } catch (e) {
@@ -91,7 +96,7 @@ const cancelEdit = () => {
 
 const saveEdit = async (id) => {
   try {
-    await updateCategory(id, editForm.value)
+    await apiUpdateCategory(id, editForm.value)
     editingId.value = null
     fetchCategories()
   } catch (e) {
@@ -99,10 +104,10 @@ const saveEdit = async (id) => {
   }
 }
 
-const deleteCategory = async (cat) => {
+const handleDeleteCategory = async (cat) => {
   if (!confirm(`确定要删除分类 "${cat.name}" 吗？`)) return
   try {
-    await deleteCategory(cat.id)
+    await apiDeleteCategory(cat.id)
     fetchCategories()
   } catch (e) {
     alert('删除失败，该分类下可能还有文章')

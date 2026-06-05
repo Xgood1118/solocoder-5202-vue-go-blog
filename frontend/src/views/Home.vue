@@ -214,6 +214,9 @@ const highlightText = (text) => {
 }
 
 const getTagStyle = (tag) => {
+  if (tagCloud.value.length === 0) {
+    return { fontSize: '14px', opacity: 1, cursor: 'pointer', margin: '4px', display: 'inline-block' }
+  }
   const maxCount = Math.max(...tagCloud.value.map(t => t.count))
   const size = 12 + (tag.count / maxCount) * 12
   const opacity = 0.5 + (tag.count / maxCount) * 0.5

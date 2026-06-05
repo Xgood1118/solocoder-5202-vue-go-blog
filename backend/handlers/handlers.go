@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 	"unicode/utf8"
@@ -145,7 +144,7 @@ func (h *Handler) CreateArticle(c *gin.Context) {
 	now := time.Now()
 	wordCount := countWords(req.Content)
 	article := models.Article{
-		ID:          uuid.NewString(),
+		ID:          uuid.New().String(),
 		Title:       req.Title,
 		Author:      req.Author,
 		CreatedAt:   now,
@@ -322,7 +321,7 @@ func (h *Handler) CreateComment(c *gin.Context) {
 	}
 
 	comment := models.Comment{
-		ID:         uuid.NewString(),
+		ID:         uuid.New().String(),
 		ArticleID:  articleID,
 		Author:     req.Author,
 		Content:    req.Content,
@@ -402,7 +401,7 @@ func (h *Handler) CreateCategory(c *gin.Context) {
 	}
 
 	category := models.Category{
-		ID:   uuid.NewString(),
+		ID:   uuid.New().String(),
 		Name: req.Name,
 		Slug: req.Slug,
 	}
@@ -500,31 +499,28 @@ func (h *Handler) GetTagCloud(c *gin.Context) {
 
 func (h *Handler) GetActiveAuthors(c *gin.Context) {
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	authorStats := make(map[string]*struct {
+	type authorStat struct {
 		Posts     int
 		ViewCount int64
-	})
+	}
+	authorStats := make(map[string]authorStat)
 
 	h.store.Articles.Range(func(_, value interface{}) bool {
 		article := value.(models.Article)
 		if article.CreatedAt.After(thirtyDaysAgo) {
-			if _, ok := authorStats[article.Author]; !ok {
-				authorStats[article.Author] = &struct {
-					Posts     int
-					ViewCount int64
-				}{}
-			}
-			authorStats[article.Author].Posts++
-			authorStats[article.Author].ViewCount += article.ViewCount
+			stat := authorStats[article.Author]
+			stat.Posts++
+			stat.ViewCount += article.ViewCount
+			authorStats[article.Author] = stat
 		}
 		return true
 	})
 
 	type AuthorInfo struct {
-		Name  string `json:"name"`
+		Name  string  `json:"name"`
 		Score float64 `json:"score"`
-		Posts int    `json:"posts"`
-		Views int64  `json:"views"`
+		Posts int     `json:"posts"`
+		Views int64   `json:"views"`
 	}
 
 	var authors []AuthorInfo
@@ -615,7 +611,7 @@ func (h *Handler) ReportComment(c *gin.Context) {
 	c.ShouldBindJSON(&req)
 
 	report := models.Report{
-		ID:        uuid.NewString(),
+		ID:        uuid.New().String(),
 		CommentID: id,
 		Reason:    req.Reason,
 		CreatedAt: time.Now(),
@@ -710,7 +706,7 @@ func containsLower(slice []string, item string) bool {
 func getClientID(c *gin.Context) string {
 	cookie, err := c.Cookie("client_id")
 	if err != nil {
-		cookie = uuid.NewString()
+		cookie = uuid.New().String()
 		c.SetCookie("client_id", cookie, 365*24*60*60, "/", "", false, true)
 	}
 	return cookie

@@ -72,10 +72,10 @@ func NewStore() *Store {
 
 func (s *Store) InitDefaultCategories() {
 	defaults := []Category{
-		{ID: uuid.NewString(), Name: "前端", Slug: "frontend"},
-		{ID: uuid.NewString(), Name: "后端", Slug: "backend"},
-		{ID: uuid.NewString(), Name: "运维", Slug: "devops"},
-		{ID: uuid.NewString(), Name: "杂项", Slug: "misc"},
+		{ID: uuid.New().String(), Name: "前端", Slug: "frontend"},
+		{ID: uuid.New().String(), Name: "后端", Slug: "backend"},
+		{ID: uuid.New().String(), Name: "运维", Slug: "devops"},
+		{ID: uuid.New().String(), Name: "杂项", Slug: "misc"},
 	}
 	for _, c := range defaults {
 		s.Categories.Store(c.ID, c)
